@@ -45,15 +45,15 @@
 #include <rviz/validate_quaternions.h>
 
 #include <rviz/ogre_helpers/billboard_line.h>
-#include <rviz/default_plugin/path_display.h>
+#include <rviz/default_plugin/multi_trajectory_display.h>
 
 namespace rviz
 {
-PathDisplay::PathDisplay()
+MultiTrajectoryDisplay::MultiTrajectoryDisplay()
 {
   style_property_ =
       new EnumProperty("Line Style", "Lines", "The rendering operation to use to draw the grid lines.",
-                       this, &PathDisplay::updateStyle);
+                       this, &MultiTrajectoryDisplay::updateStyle);
 
   style_property_->addOption("Lines", LINES);
   style_property_->addOption("Billboards", BILLBOARDS);
@@ -61,7 +61,7 @@ PathDisplay::PathDisplay()
   line_width_property_ = new FloatProperty(
       "Line Width", 0.03,
       "The width, in meters, of each path line. Only works with the 'Billboards' style.", this,
-      &PathDisplay::updateLineWidth, this);
+      &MultiTrajectoryDisplay::updateLineWidth, this);
   line_width_property_->setMin(0.001);
   line_width_property_->hide();
 
@@ -71,37 +71,37 @@ PathDisplay::PathDisplay()
       new FloatProperty("Alpha", 1.0, "Amount of transparency to apply to the path.", this);
 
   buffer_length_property_ = new IntProperty("Buffer Length", 1, "Number of paths to display.", this,
-                                            &PathDisplay::updateBufferLength);
+                                            &MultiTrajectoryDisplay::updateBufferLength);
   buffer_length_property_->setMin(1);
 
   offset_property_ = new VectorProperty(
       "Offset", Ogre::Vector3::ZERO,
       "Allows you to offset the path from the origin of the reference frame.  In meters.", this,
-      &PathDisplay::updateOffset);
+      &MultiTrajectoryDisplay::updateOffset);
 
   pose_style_property_ = new EnumProperty("Pose Style", "None", "Shape to display the pose as.", this,
-                                          &PathDisplay::updatePoseStyle);
+                                          &MultiTrajectoryDisplay::updatePoseStyle);
   pose_style_property_->addOption("None", NONE);
   pose_style_property_->addOption("Axes", AXES);
   pose_style_property_->addOption("Arrows", ARROWS);
 
   pose_axes_length_property_ = new rviz::FloatProperty("Length", 0.3, "Length of the axes.", this,
-                                                       &PathDisplay::updatePoseAxisGeometry);
+                                                       &MultiTrajectoryDisplay::updatePoseAxisGeometry);
   pose_axes_radius_property_ = new rviz::FloatProperty("Radius", 0.03, "Radius of the axes.", this,
-                                                       &PathDisplay::updatePoseAxisGeometry);
+                                                       &MultiTrajectoryDisplay::updatePoseAxisGeometry);
 
   pose_arrow_color_property_ =
       new ColorProperty("Pose Color", QColor(255, 85, 255), "Color to draw the poses.", this,
-                        &PathDisplay::updatePoseArrowColor);
+                        &MultiTrajectoryDisplay::updatePoseArrowColor);
   pose_arrow_shaft_length_property_ = new rviz::FloatProperty(
-      "Shaft Length", 0.1, "Length of the arrow shaft.", this, &PathDisplay::updatePoseArrowGeometry);
+      "Shaft Length", 0.1, "Length of the arrow shaft.", this, &MultiTrajectoryDisplay::updatePoseArrowGeometry);
   pose_arrow_head_length_property_ = new rviz::FloatProperty(
-      "Head Length", 0.2, "Length of the arrow head.", this, &PathDisplay::updatePoseArrowGeometry);
+      "Head Length", 0.2, "Length of the arrow head.", this, &MultiTrajectoryDisplay::updatePoseArrowGeometry);
   pose_arrow_shaft_diameter_property_ =
       new rviz::FloatProperty("Shaft Diameter", 0.1, "Diameter of the arrow shaft.", this,
-                              &PathDisplay::updatePoseArrowGeometry);
+                              &MultiTrajectoryDisplay::updatePoseArrowGeometry);
   pose_arrow_head_diameter_property_ = new rviz::FloatProperty(
-      "Head Diameter", 0.3, "Diameter of the arrow head.", this, &PathDisplay::updatePoseArrowGeometry);
+      "Head Diameter", 0.3, "Diameter of the arrow head.", this, &MultiTrajectoryDisplay::updatePoseArrowGeometry);
   pose_axes_length_property_->hide();
   pose_axes_radius_property_->hide();
   pose_arrow_color_property_->hide();
@@ -111,27 +111,27 @@ PathDisplay::PathDisplay()
   pose_arrow_head_diameter_property_->hide();
 }
 
-PathDisplay::~PathDisplay()
+MultiTrajectoryDisplay::~MultiTrajectoryDisplay()
 {
   destroyObjects();
   destroyPoseAxesChain();
   destroyPoseArrowChain();
 }
 
-void PathDisplay::onInitialize()
+void MultiTrajectoryDisplay::onInitialize()
 {
   MFDClass::onInitialize();
   updateBufferLength();
 }
 
-void PathDisplay::reset()
+void MultiTrajectoryDisplay::reset()
 {
   MFDClass::reset();
   updateBufferLength();
 }
 
 
-void PathDisplay::allocateAxesVector(std::vector<rviz::Axes*>& axes_vect, size_t num)
+void MultiTrajectoryDisplay::allocateAxesVector(std::vector<rviz::Axes*>& axes_vect, size_t num)
 {
   if (num > axes_vect.size())
   {
@@ -153,7 +153,7 @@ void PathDisplay::allocateAxesVector(std::vector<rviz::Axes*>& axes_vect, size_t
   }
 }
 
-void PathDisplay::allocateArrowVector(std::vector<rviz::Arrow*>& arrow_vect, size_t num)
+void MultiTrajectoryDisplay::allocateArrowVector(std::vector<rviz::Arrow*>& arrow_vect, size_t num)
 {
   if (num > arrow_vect.size())
   {
@@ -173,7 +173,7 @@ void PathDisplay::allocateArrowVector(std::vector<rviz::Arrow*>& arrow_vect, siz
   }
 }
 
-void PathDisplay::destroyPoseAxesChain()
+void MultiTrajectoryDisplay::destroyPoseAxesChain()
 {
   for (size_t i = 0; i < axes_chain_.size(); i++)
   {
@@ -182,7 +182,7 @@ void PathDisplay::destroyPoseAxesChain()
   axes_chain_.resize(0);
 }
 
-void PathDisplay::destroyPoseArrowChain()
+void MultiTrajectoryDisplay::destroyPoseArrowChain()
 {
   for (size_t i = 0; i < arrow_chain_.size(); i++)
   {
@@ -191,7 +191,7 @@ void PathDisplay::destroyPoseArrowChain()
   arrow_chain_.resize(0);
 }
 
-void PathDisplay::updateStyle()
+void MultiTrajectoryDisplay::updateStyle()
 {
   LineStyle style = (LineStyle)style_property_->getOptionInt();
 
@@ -210,7 +210,7 @@ void PathDisplay::updateStyle()
   updateBufferLength();
 }
 
-void PathDisplay::updateLineWidth()
+void MultiTrajectoryDisplay::updateLineWidth()
 {
   LineStyle style = (LineStyle)style_property_->getOptionInt();
   float line_width = line_width_property_->getFloat();
@@ -227,13 +227,13 @@ void PathDisplay::updateLineWidth()
   context_->queueRender();
 }
 
-void PathDisplay::updateOffset()
+void MultiTrajectoryDisplay::updateOffset()
 {
   scene_node_->setPosition(offset_property_->getVector());
   context_->queueRender();
 }
 
-void PathDisplay::updatePoseStyle()
+void MultiTrajectoryDisplay::updatePoseStyle()
 {
   PoseStyle pose_style = (PoseStyle)pose_style_property_->getOptionInt();
   switch (pose_style)
@@ -268,7 +268,7 @@ void PathDisplay::updatePoseStyle()
   updateBufferLength();
 }
 
-void PathDisplay::updatePoseAxisGeometry()
+void MultiTrajectoryDisplay::updatePoseAxisGeometry()
 {
   for (size_t i = 0; i < axes_chain_.size(); i++)
   {
@@ -281,7 +281,7 @@ void PathDisplay::updatePoseAxisGeometry()
   context_->queueRender();
 }
 
-void PathDisplay::updatePoseArrowColor()
+void MultiTrajectoryDisplay::updatePoseArrowColor()
 {
   QColor color = pose_arrow_color_property_->getColor();
 
@@ -296,7 +296,7 @@ void PathDisplay::updatePoseArrowColor()
   context_->queueRender();
 }
 
-void PathDisplay::updatePoseArrowGeometry()
+void MultiTrajectoryDisplay::updatePoseArrowGeometry()
 {
   for (size_t i = 0; i < arrow_chain_.size(); i++)
   {
@@ -312,7 +312,7 @@ void PathDisplay::updatePoseArrowGeometry()
   context_->queueRender();
 }
 
-void PathDisplay::destroyObjects()
+void MultiTrajectoryDisplay::destroyObjects()
 {
   // Destroy all simple lines, if any
   for (size_t i = 0; i < manual_objects_.size(); i++)
@@ -338,7 +338,7 @@ void PathDisplay::destroyObjects()
   }
 }
 
-void PathDisplay::updateBufferLength()
+void MultiTrajectoryDisplay::updateBufferLength()
 {
   // Delete old path objects
   destroyObjects();
@@ -379,15 +379,15 @@ void PathDisplay::updateBufferLength()
   arrow_chain_.resize(buffer_length);
 }
 
-bool validateFloats(const nav_msgs::Path& msg)
+bool validateFloats2(const nav_msgs::Path& msg)
 {
   bool valid = true;
   valid = valid && validateFloats(msg.poses);
   return valid;
 }
 
-void PathDisplay::processMessage(const nav_msgs::Path::ConstPtr& msg)
-{  
+void MultiTrajectoryDisplay::processMessage(const nav_msgs::Path::ConstPtr& msg)
+{
   // Calculate index of oldest element in cyclic buffer
   size_t bufferIndex = messages_received_ % buffer_length_property_->getInt();
 
@@ -410,7 +410,7 @@ void PathDisplay::processMessage(const nav_msgs::Path::ConstPtr& msg)
   }
 
   // Check if path contains invalid coordinate values
-  if (!validateFloats(*msg))
+  if (!validateFloats2(*msg))
   {
     setStatus(StatusProperty::Error, "Topic",
               "Message contained invalid floating point values (nans or infs)");
@@ -530,4 +530,4 @@ void PathDisplay::processMessage(const nav_msgs::Path::ConstPtr& msg)
 } // namespace rviz
 
 #include <pluginlib/class_list_macros.hpp>
-PLUGINLIB_EXPORT_CLASS(rviz::PathDisplay, rviz::Display)
+PLUGINLIB_EXPORT_CLASS(rviz::MultiTrajectoryDisplay, rviz::Display)

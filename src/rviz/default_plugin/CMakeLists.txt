@@ -31,6 +31,7 @@ set(SOURCE_FILES
   markers/shape_marker.cpp
   markers/text_view_facing_marker.cpp
   markers/triangle_list_marker.cpp
+  multi_trajectory_display.cpp
   odometry_display.cpp
   path_display.cpp
   point_display.cpp
